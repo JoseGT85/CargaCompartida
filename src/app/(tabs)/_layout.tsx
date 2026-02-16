@@ -102,7 +102,13 @@ export default function TabsLayout() {
                     href: null,
                 }}
             />
+            <Tabs.Screen
+                name="my-vehicles"
+                options={{
+                    href: null, // Oculto del tab bar, accesible via navegación
+                }}
+            />
         </Tabs>
     );
 }
-
+```

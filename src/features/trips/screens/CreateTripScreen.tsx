@@ -29,6 +29,8 @@ import { Button } from '../../../shared/components/Button';
 import { Input } from '../../../shared/components/Input';
 import { DateTimePickerInput } from '../../../shared/components/DateTimePickerInput';
 import { LocationPicker } from '../components/LocationPicker';
+import { VehiclePicker } from '../components/VehiclePicker';
+import { useVehicleStore } from '../../vehicles/stores/useVehicleStore';
 import { RoutePreview } from '../components/RoutePreview';
 import type { GeoLocation } from '../../../shared/types/geo.types';
 import type { TripDirection } from '../../../types/database.types';
@@ -44,6 +46,8 @@ export default function CreateTripScreen() {
     // UI State
     const [showOriginPicker, setShowOriginPicker] = useState(false);
     const [showDestPicker, setShowDestPicker] = useState(false);
+    const [showVehiclePicker, setShowVehiclePicker] = useState(false);
+    const [selectedVehicleInfo, setSelectedVehicleInfo] = useState<{ name: string, plate: string } | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoadingRoute, setIsLoadingRoute] = useState(false);
 
@@ -209,6 +213,40 @@ export default function CreateTripScreen() {
                                 </View>
                             )}
                         </TouchableOpacity>
+                    </View>
+
+                    {/* ─── VEHÍCULO ─────────────── */}
+                    <View className="mx-6 mt-6">
+                        <Text className="text-gray-400 text-sm mb-2 font-sans-medium">
+                            VEHÍCULO
+                        </Text>
+                        <TouchableOpacity
+                            className={`bg-surface rounded-2xl p-4 flex-row items-center border ${errors.vehicle_id ? 'border-red-500' : 'border-surface-light'
+                                }`}
+                            onPress={() => setShowVehiclePicker(true)}
+                        >
+                            <Text className="text-2xl mr-3">🚛</Text>
+                            <View className="flex-1">
+                                {selectedVehicleInfo ? (
+                                    <>
+                                        <Text className="text-white text-lg font-sans-bold">
+                                            {selectedVehicleInfo.name}
+                                        </Text>
+                                        <Text className="text-gray-400 text-sm">
+                                            Patente: {selectedVehicleInfo.plate}
+                                        </Text>
+                                    </>
+                                ) : (
+                                    <Text className="text-gray-500 text-lg">
+                                        Seleccioná tu vehículo...
+                                    </Text>
+                                )}
+                            </View>
+                            <Text className="text-primary-400 text-sm font-bold">CAMBIAR</Text>
+                        </TouchableOpacity>
+                        {errors.vehicle_id && (
+                            <Text className="text-danger text-sm mt-1 ml-2">{errors.vehicle_id}</Text>
+                        )}
                     </View>
 
                     {/* ─── ORIGEN ──────────────────────────────── */}
@@ -378,6 +416,17 @@ export default function CreateTripScreen() {
                     onCancel={() => setShowDestPicker(false)}
                 />
             </Modal>
+
+            <VehiclePicker
+                visible={showVehiclePicker}
+                onClose={() => setShowVehiclePicker(false)}
+                onSelect={(v) => {
+                    updateDraft({ vehicle_id: v.id });
+                    setSelectedVehicleInfo({ name: `${v.brand} ${v.model}`, plate: v.plate });
+                    setShowVehiclePicker(false);
+                }}
+                selectedVehicleId={draft.vehicle_id}
+            />
         </>
     );
 }
