@@ -12,7 +12,7 @@ import {
 
 interface InputProps extends TextInputProps {
     /** Etiqueta del campo */
-    label: string;
+    label?: string;
     /** Mensaje de error (si existe, el campo se muestra en rojo) */
     error?: string;
     /** Texto de ayuda debajo del campo */
@@ -35,9 +35,11 @@ export function Input({
             : 'border-gray-600';
     return (
         <View className="mb-4">
-            <Text className="text-gray-300 text-sm font-medium mb-1.5">
-                {label}
-            </Text>
+            {label && (
+                <Text className="text-gray-300 text-sm font-medium mb-1.5">
+                    {label}
+                </Text>
+            )}
             <TextInput
                 className={`bg-card text-foreground border border-input h-14 rounded-2xl px-4 text-base font-sans placeholder:text-muted-foreground focus:border-ring ${error ? 'border-destructive' : ''
                     } ${className}`}
