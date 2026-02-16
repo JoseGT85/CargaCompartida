@@ -9,7 +9,7 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
-import type { GeoLocation, LatLng } from '../../shared/types/geo.types';
+import type { GeoLocation, LatLng } from '../../../shared/types/geo.types';
 
 interface RoutePreviewProps {
     /** Punto de origen */
