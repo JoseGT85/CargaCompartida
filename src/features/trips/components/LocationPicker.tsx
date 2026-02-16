@@ -10,8 +10,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, FlatList, TextInput, Alert, ActivityIndicator } from 'react-native';
 import MapView, { Marker, MapPressEvent, PROVIDER_GOOGLE, Region } from 'react-native-maps';
-import { geocodeAddress, reverseGeocode, MENDOZA_CITIES } from '../../lib/maps';
-import type { GeoLocation } from '../types/geo.types';
+import { geocodeAddress, reverseGeocode, MENDOZA_CITIES } from '../../../lib/maps';
+import type { GeoLocation } from '../../../shared/types/geo.types';
 
 // ────────────────────────────────────────────────────────────────
 // Props
