@@ -9,8 +9,9 @@
  */
 
 export const ENV = {
-    SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://TU-PROYECTO.supabase.co',
-    SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? 'TU-ANON-KEY-AQUI',
+    SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://gociyifphjifbctikkbr.supabase.co',
+    SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? 'TU-ANON-KEY-AQUIeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvY2l5aWZwaGppZmJjdGlra2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNzMwODEsImV4cCI6MjA4Njg0OTA4MX0.Ojc_DlaJkbcUMQhC4hOMVrZvhkp4ilwfAcCMN7jNt3c',
+    GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? undefined,
 } as const;
 
 /**
