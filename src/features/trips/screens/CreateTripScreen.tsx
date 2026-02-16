@@ -27,6 +27,7 @@ import { createTripSchema } from '../types/trip.schema';
 import { getDirections } from '../../../lib/maps';
 import { Button } from '../../../shared/components/Button';
 import { Input } from '../../../shared/components/Input';
+import { DateTimePickerInput } from '../../../shared/components/DateTimePickerInput';
 import { LocationPicker } from '../components/LocationPicker';
 import { RoutePreview } from '../components/RoutePreview';
 import type { GeoLocation } from '../../../shared/types/geo.types';
@@ -112,7 +113,7 @@ export default function CreateTripScreen() {
             origin: draft.origin ?? { latitude: 0, longitude: 0, address: '' },
             destination: draft.destination ?? { latitude: 0, longitude: 0, address: '' },
             direction: draft.direction,
-            departure_at: draft.departure_at ?? '',
+            departure_at: draft.departure_at,
             estimated_arrival: draft.estimated_arrival ?? undefined,
             available_kg: draft.available_kg ?? 0,
             available_m3: draft.available_m3 ?? undefined,
@@ -297,13 +298,12 @@ export default function CreateTripScreen() {
 
                     {/* ─── FECHA DE SALIDA ─────────────────────── */}
                     <View className="mx-6 mt-6">
-                        <Input
+                        <DateTimePickerInput
                             label="Fecha y hora de salida"
-                            placeholder="ej: 2026-02-20T08:00"
-                            value={draft.departure_at ?? ''}
-                            onChangeText={(text) => updateDraft({ departure_at: text })}
+                            value={draft.departure_at ?? new Date()}
+                            onChange={(date) => updateDraft({ departure_at: date })}
+                            minimumDate={new Date()}
                             error={errors.departure_at}
-                            helperText={errors.departure_at}
                         />
                     </View>
 

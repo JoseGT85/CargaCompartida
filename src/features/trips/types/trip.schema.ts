@@ -45,10 +45,11 @@ export const createTripSchema = z.object({
     }),
 
     /** Fecha y hora de salida */
-    departure_at: z.string().refine(
-        (date) => new Date(date) > new Date(),
-        'La fecha de salida debe ser en el futuro',
-    ),
+    departure_at: z.date({
+        message: 'Ingresá una fecha válida',
+    }).refine((date) => date > new Date(), {
+        message: 'La fecha de salida debe ser en el futuro',
+    }),
 
     /** Fecha estimada de llegada (opcional) */
     estimated_arrival: z.string().optional(),

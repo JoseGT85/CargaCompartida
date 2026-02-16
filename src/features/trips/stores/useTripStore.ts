@@ -26,7 +26,7 @@ export interface TripDraft {
     origin: GeoLocation | null;
     destination: GeoLocation | null;
     direction: TripDirection;
-    departure_at: string | null;
+    departure_at: Date | null;
     estimated_arrival: string | null;
     available_kg: number | null;
     available_m3: number | null;
@@ -160,7 +160,7 @@ export const useTripStore = create<TripState & TripActions>((set, get) => ({
                 dest_name: draft.destination.name ?? draft.destination.address,
                 dest_point: toWKTPoint(draft.destination),
                 direction: input.direction,
-                departure_at: input.departure_at,
+                departure_at: input.departure_at.toISOString(),
                 estimated_arrival: input.estimated_arrival ?? null,
                 available_kg: input.available_kg,
                 available_m3: input.available_m3 ?? null,
