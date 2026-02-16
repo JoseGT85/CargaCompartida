@@ -23,6 +23,7 @@ export function Input({
     label,
     error,
     helperText,
+    className = '',
     ...props
 }: InputProps) {
     const [isFocused, setIsFocused] = useState(false);
@@ -32,17 +33,15 @@ export function Input({
         : isFocused
             ? 'border-primary-500'
             : 'border-gray-600';
-
     return (
         <View className="mb-4">
             <Text className="text-gray-300 text-sm font-medium mb-1.5">
                 {label}
             </Text>
             <TextInput
-                className={`bg-surface-dark text-white text-base px-4 py-3 rounded-xl border ${borderColor}`}
-                placeholderTextColor="#6b7280"
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
+                className={`bg-card text-foreground border border-input h-14 rounded-2xl px-4 text-base font-sans placeholder:text-muted-foreground focus:border-ring ${error ? 'border-destructive' : ''
+                    } ${className}`}
+                placeholderTextColor="#94a3b8" // muted-foreground
                 {...props}
             />
             {error ? (

@@ -6,46 +6,34 @@ import {
     KeyboardAvoidingView,
     Platform,
     Alert,
+    Image,
+    TouchableOpacity,
 } from 'react-native';
 import { Link, router } from 'expo-router';
-import { Input, Button } from '../../shared/components';
+import { Input, Button, Card } from '../../shared/components';
 import { useAuthStore } from '../../features/auth/stores/useAuthStore';
 import { loginSchema, type LoginFormData } from '../../features/auth/types/auth.schema';
+import { Truck, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 
 // ────────────────────────────────────────────────────────────────
-// Pantalla de Login — CargaCompartida
+// Pantalla de Login — Migración visual desde Lovable
 // ────────────────────────────────────────────────────────────────
 
 export default function LoginScreen() {
     const { signIn, isLoading, error, clearError } = useAuthStore();
-
-    const [form, setForm] = useState<LoginFormData>({
-        email: '',
-        password: '',
-    });
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-    const handleChange = (field: keyof LoginFormData, value: string) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
-        // Limpiar error del campo al editar
-        if (fieldErrors[field]) {
-            setFieldErrors((prev) => {
-                const next = { ...prev };
-                delete next[field];
-                return next;
-            });
-        }
-        if (error) clearError();
-    };
-
     const handleLogin = async () => {
-        // Validar con Zod
-        const result = loginSchema.safeParse(form);
+        const formData = { email, password };
+        const result = loginSchema.safeParse(formData);
+
         if (!result.success) {
             const errors: Record<string, string> = {};
             result.error.issues.forEach((issue) => {
-                const field = issue.path[0] as string;
-                errors[field] = issue.message;
+                errors[issue.path[0] as string] = issue.message;
             });
             setFieldErrors(errors);
             return;
@@ -53,85 +41,112 @@ export default function LoginScreen() {
 
         try {
             setFieldErrors({});
-            await signIn(result.data.email, result.data.password);
-            // La navegación se maneja automáticamente por el _layout.tsx
+            await signIn(email, password);
         } catch {
-            Alert.alert(
-                'Error al iniciar sesión',
-                'Verifica tus credenciales e intenta de nuevo.'
-            );
+            // El error se maneja en el store
         }
     };
 
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1 bg-surface-dark"
+            className="flex-1 bg-background"
         >
             <ScrollView
-                contentContainerStyle={{ flexGrow: 1 }}
+                contentContainerStyle={{ flexGrow: 1, }}
                 keyboardShouldPersistTaps="handled"
+                className="px-6"
             >
-                <View className="flex-1 justify-center px-6 py-12">
-                    {/* Header */}
-                    <View className="items-center mb-10">
-                        <Text className="text-4xl font-bold text-white mb-2">
-                            🚛 CargaCompartida
-                        </Text>
-                        <Text className="text-gray-400 text-base text-center">
-                            Conectamos tu carga con vehículos que vuelven vacíos
-                        </Text>
+                <View className="flex-1 flex-col items-center justify-center w-full max-w-sm mx-auto">
+
+                    {/* Logo Square */}
+                    <View className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mb-6">
+                        <Truck className="text-primary-foreground" size={32} />
                     </View>
 
-                    {/* Formulario */}
-                    <View className="bg-surface rounded-2xl p-6 mb-6">
-                        <Text className="text-white text-xl font-semibold mb-6">
-                            Iniciar Sesión
-                        </Text>
+                    <Text className="text-2xl font-sans-bold text-foreground tracking-tight">
+                        CargaCompartida
+                    </Text>
+                    <Text className="text-muted-foreground mt-1 mb-8 text-center text-base">
+                        Tu carga, tu precio.
+                    </Text>
 
-                        <Input
-                            label="Email"
-                            placeholder="tu@email.com"
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                            value={form.email}
-                            onChangeText={(text) => handleChange('email', text)}
-                            error={fieldErrors.email}
-                        />
+                    {/* Form Container */}
+                    <View className="w-full space-y-4 gap-4">
 
-                        <Input
-                            label="Contraseña"
-                            placeholder="Tu contraseña"
-                            secureTextEntry
-                            value={form.password}
-                            onChangeText={(text) => handleChange('password', text)}
-                            error={fieldErrors.password}
-                        />
+                        {/* Email Input */}
+                        <View className="relative">
+                            <View className="absolute left-4 top-4 z-10 w-5 h-5">
+                                <Mail size={20} color="#94a3b8" />
+                            </View>
+                            <Input
+                                placeholder="Email"
+                                value={email}
+                                onChangeText={(t) => {
+                                    setEmail(t);
+                                    if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: '' });
+                                    if (error) clearError();
+                                }}
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                className="pl-12" // Padding left para el icono
+                                error={fieldErrors.email}
+                            />
+                        </View>
+
+                        {/* Password Input */}
+                        <View className="relative">
+                            <View className="absolute left-4 top-4 z-10 w-5 h-5">
+                                <Lock size={20} color="#94a3b8" />
+                            </View>
+                            <Input
+                                placeholder="Contraseña"
+                                value={password}
+                                onChangeText={(t) => {
+                                    setPassword(t);
+                                    if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: '' });
+                                }}
+                                secureTextEntry={!showPassword}
+                                className="pl-12 pr-12" // Padding left icono, right ojo
+                                error={fieldErrors.password}
+                            />
+                            <TouchableOpacity
+                                className="absolute right-4 top-4 z-10"
+                                onPress={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? (
+                                    <EyeOff size={20} color="#94a3b8" />
+                                ) : (
+                                    <Eye size={20} color="#94a3b8" />
+                                )}
+                            </TouchableOpacity>
+                        </View>
 
                         {error && (
-                            <View className="bg-danger/10 rounded-lg p-3 mb-4">
-                                <Text className="text-danger text-sm">{error}</Text>
-                            </View>
+                            <Text className="text-destructive text-sm text-center">{error}</Text>
                         )}
 
                         <Button
                             title="Ingresar"
                             onPress={handleLogin}
                             isLoading={isLoading}
-                            size="lg"
+                            variant="primary"
+                            textClassName="font-bold text-base"
                         />
                     </View>
 
-                    {/* Link a registro */}
-                    <View className="flex-row justify-center items-center">
-                        <Text className="text-gray-400">¿No tenés cuenta? </Text>
-                        <Link href="/(auth)/register" asChild>
-                            <Text className="text-primary-400 font-semibold">
-                                Registrate
-                            </Text>
-                        </Link>
-                    </View>
+                    {/* Register Button */}
+                    <Button
+                        title="Registrarme como Chofer"
+                        onPress={() => router.push('/(auth)/register')}
+                        variant="ghost"
+                        className="w-full mt-3 border-2 border-border bg-card h-14 rounded-2xl"
+                        textClassName="font-semibold text-foreground"
+                    />
+
+                    <Text className="text-xs text-muted-foreground mt-6 text-center">
+                        Mendoza, Argentina 🇦🇷
+                    </Text>
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>

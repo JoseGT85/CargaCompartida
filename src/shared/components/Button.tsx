@@ -14,69 +14,57 @@ interface ButtonProps extends TouchableOpacityProps {
     /** Texto del botón */
     title: string;
     /** Variante visual */
-    variant?: 'primary' | 'secondary' | 'outline' | 'danger';
+    variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
     /** Indica si está en estado de carga */
     isLoading?: boolean;
     /** Tamaño del botón */
     size?: 'sm' | 'md' | 'lg';
+    /** Clases adicionales para el texto del botón */
+    textClassName?: string;
 }
 
-const variantStyles = {
-    primary: 'bg-primary-600 active:bg-primary-700',
-    secondary: 'bg-surface-light active:bg-surface-dark',
-    outline: 'bg-transparent border-2 border-primary-500 active:bg-primary-500/10',
-    danger: 'bg-danger active:bg-red-700',
-};
-
-const variantTextStyles = {
-    primary: 'text-white',
-    secondary: 'text-white',
-    outline: 'text-primary-500',
-    danger: 'text-white',
-};
-
-const sizeStyles = {
-    sm: 'py-2 px-4',
-    md: 'py-3 px-6',
-    lg: 'py-4 px-8',
-};
-
-const sizeTextStyles = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg',
+const baseStyles = 'h-14 rounded-2xl flex-row items-center justify-center active:scale-95 transition-transform';
+const variants = {
+    primary: 'bg-primary text-primary-foreground', // Lime
+    secondary: 'bg-secondary border border-border text-secondary-foreground',
+    outline: 'bg-transparent border-2 border-primary text-primary',
+    ghost: 'bg-transparent text-primary',
+    danger: 'bg-destructive text-destructive-foreground',
 };
 
 export function Button({
     title,
     variant = 'primary',
     isLoading = false,
-    size = 'md',
+    size = 'md', // Size is no longer directly used for styling, but kept for interface compatibility if needed elsewhere
     disabled,
+    textClassName = '',
     ...props
 }: ButtonProps) {
     const isDisabled = disabled || isLoading;
 
+    const buttonVariantStyle = variants[variant] || variants.primary; // Fallback to primary
+
     return (
         <TouchableOpacity
-            className={`rounded-xl items-center justify-center ${variantStyles[variant]} ${sizeStyles[size]} ${isDisabled ? 'opacity-50' : ''
-                }`}
+            className={`${baseStyles} ${buttonVariantStyle} ${isDisabled ? 'opacity-50' : ''}`}
             disabled={isDisabled}
             activeOpacity={0.8}
             {...props}
         >
             {isLoading ? (
                 <ActivityIndicator
-                    color={variant === 'outline' ? '#6366f1' : '#ffffff'}
+                    color={variant === 'outline' || variant === 'ghost' ? '#6366f1' : '#ffffff'}
                     size="small"
                 />
             ) : (
-                <Text
-                    className={`font-semibold ${variantTextStyles[variant]} ${sizeTextStyles[size]}`}
-                >
+                <Text className={`font-sans-bold text-base ${variant === 'outline' || variant === 'ghost' ? 'text-primary' :
+                    variant === 'primary' ? 'text-primary-foreground' : 'text-white'
+                    } ${textClassName}`}>
                     {title}
                 </Text>
             )}
         </TouchableOpacity>
     );
 }
+
