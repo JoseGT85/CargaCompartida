@@ -135,17 +135,26 @@ export default function LoginScreen() {
                         />
                     </View>
 
-                    {/* Register Button */}
-                    <Button
-                        title="Registrarme como Chofer"
-                        onPress={() => router.push('/(auth)/register')}
-                        variant="ghost"
-                        className="w-full mt-3 border-2 border-border bg-card h-14 rounded-2xl"
-                        textClassName="font-semibold text-foreground"
-                    />
+                    {/* Registration Options */}
+                    <View className="w-full mt-3 gap-3">
+                        <Button
+                            title="Registrarme como Chofer"
+                            onPress={() => router.push('/(auth)/register')}
+                            variant="ghost"
+                            className="w-full border-2 border-border bg-card h-14 rounded-2xl"
+                            textClassName="font-semibold text-foreground"
+                        />
+                        <Button
+                            title="Registrarme como Cliente"
+                            onPress={() => router.push('/(auth)/register-client' as any)}
+                            variant="ghost"
+                            className="w-full border-2 border-border bg-card h-14 rounded-2xl"
+                            textClassName="font-semibold text-foreground"
+                        />
+                    </View>
 
                     <Text className="text-xs text-muted-foreground mt-6 text-center">
-                        Mendoza, Argentina 🇦🇷
+                        Mendoza, Argentina
                     </Text>
                 </View>
             </ScrollView>

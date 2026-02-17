@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '../features/auth/stores/useAuthStore';
+import { COLORS } from '../config/constants';
 import '../../global.css';
 
 // ────────────────────────────────────────────────────────────────
@@ -35,7 +37,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!isInitialized || isLoading) {
         return (
             <View className="flex-1 items-center justify-center bg-surface-dark">
-                <ActivityIndicator size="large" color="#6366f1" />
+                <ActivityIndicator size="large" color={COLORS.primary} />
             </View>
         );
     }
@@ -56,8 +58,11 @@ export default function RootLayout() {
     }, []);
 
     return (
-        <AuthGuard>
-            <Slot />
-        </AuthGuard>
+        <>
+            <StatusBar style="light" />
+            <AuthGuard>
+                <Slot />
+            </AuthGuard>
+        </>
     );
 }

@@ -24,15 +24,18 @@ export function Input({
     error,
     helperText,
     className = '',
+    onFocus: onFocusProp,
+    onBlur: onBlurProp,
     ...props
 }: InputProps) {
     const [isFocused, setIsFocused] = useState(false);
 
-    const borderColor = error
-        ? 'border-danger'
+    const borderClass = error
+        ? 'border-destructive'
         : isFocused
-            ? 'border-primary-500'
-            : 'border-gray-600';
+            ? 'border-ring'
+            : 'border-input';
+
     return (
         <View className="mb-4">
             {label && (
@@ -41,9 +44,16 @@ export function Input({
                 </Text>
             )}
             <TextInput
-                className={`bg-card text-foreground border border-input h-14 rounded-2xl px-4 text-base font-sans placeholder:text-muted-foreground focus:border-ring ${error ? 'border-destructive' : ''
-                    } ${className}`}
-                placeholderTextColor="#94a3b8" // muted-foreground
+                className={`bg-card text-foreground border h-14 rounded-2xl px-4 text-base font-sans placeholder:text-muted-foreground ${borderClass} ${className}`}
+                placeholderTextColor="#94a3b8"
+                onFocus={(e) => {
+                    setIsFocused(true);
+                    onFocusProp?.(e);
+                }}
+                onBlur={(e) => {
+                    setIsFocused(false);
+                    onBlurProp?.(e);
+                }}
                 {...props}
             />
             {error ? (
