@@ -7,9 +7,10 @@ import {
     Platform,
     Alert,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { Input, Button } from '../../shared/components';
 import { useAuthStore } from '../../features/auth/stores/useAuthStore';
+import { supabase } from '../../lib/supabase';
 import {
     registerDriverSchema,
     type RegisterDriverFormData,
@@ -101,10 +102,25 @@ export default function RegisterScreen() {
                 role: 'driver',
             });
 
+            // Intentar guardar el vehículo si el usuario ya tiene sesión activa
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                await supabase.from('vehicles').insert({
+                    driver_id: session.user.id,
+                    plate: result.data.plate,
+                    brand: result.data.brand,
+                    model: result.data.model,
+                    year: result.data.year,
+                    vehicle_type: result.data.vehicle_type,
+                    capacity_kg: result.data.capacity_kg,
+                    is_active: true,
+                });
+            }
+
             Alert.alert(
-                '✅ Registro exitoso',
+                'Registro exitoso',
                 'Tu cuenta fue creada correctamente. Ya podés iniciar sesión.',
-                [{ text: 'Ir a Login' }]
+                [{ text: 'Ir a Login', onPress: () => router.replace('/(auth)/login') }]
             );
         } catch {
             Alert.alert(

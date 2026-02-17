@@ -123,6 +123,9 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
                 throw error;
             }
             // El trigger handle_new_user() de la DB creará el profile automáticamente
+            // Resetear isLoading: si Supabase requiere confirmación de email,
+            // onAuthStateChange no se dispara y la UI quedaría en spinner
+            set({ isLoading: false });
         } catch (error: unknown) {
             const message =
                 error instanceof Error ? error.message : 'Error al registrarse';

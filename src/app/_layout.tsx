@@ -33,8 +33,9 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
         }
     }, [session, isInitialized, segments]);
 
-    // Pantalla de carga mientras se verifica la sesión
-    if (!isInitialized || isLoading) {
+    // Pantalla de carga SOLO durante la inicialización de sesión.
+    // No bloquear durante signIn/signUp — esas pantallas manejan su propio isLoading.
+    if (!isInitialized) {
         return (
             <View className="flex-1 items-center justify-center bg-surface-dark">
                 <ActivityIndicator size="large" color={COLORS.primary} />

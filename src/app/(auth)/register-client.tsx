@@ -7,7 +7,7 @@ import {
     Platform,
     Alert,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { Package } from 'lucide-react-native';
 import { Input, Button } from '../../shared/components';
 import { useAuthStore } from '../../features/auth/stores/useAuthStore';
@@ -64,7 +64,7 @@ export default function RegisterClientScreen() {
             Alert.alert(
                 'Registro exitoso',
                 'Tu cuenta fue creada correctamente. Ya podés iniciar sesión.',
-                [{ text: 'Ir a Login' }]
+                [{ text: 'Ir a Login', onPress: () => router.replace('/(auth)/login') }]
             );
         } catch {
             Alert.alert(
