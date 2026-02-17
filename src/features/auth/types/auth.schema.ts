@@ -13,10 +13,12 @@ import { BUSINESS_RULES } from '../../../config/env';
 export const loginSchema = z.object({
     email: z
         .string({ error: 'El email es obligatorio' })
-        .email('Ingresá un email válido'),
+        .email('Ingresá un email válido')
+        .trim(),
     password: z
         .string({ error: 'La contraseña es obligatoria' })
-        .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+        .min(6, 'La contraseña debe tener al menos 6 caracteres')
+        .trim(),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
@@ -39,11 +41,13 @@ export const registerDriverSchema = z.object({
         .max(20, 'Número de teléfono demasiado largo'),
     email: z
         .string({ error: 'El email es obligatorio' })
-        .email('Ingresá un email válido'),
+        .email('Ingresá un email válido')
+        .trim(),
     password: z
         .string({ error: 'La contraseña es obligatoria' })
         .min(6, 'La contraseña debe tener al menos 6 caracteres')
-        .max(72, 'La contraseña no puede exceder 72 caracteres'),
+        .max(72, 'La contraseña no puede exceder 72 caracteres')
+        .trim(),
 
     // Datos del vehículo
     plate: z
