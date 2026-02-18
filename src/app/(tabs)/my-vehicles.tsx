@@ -95,7 +95,7 @@ export default function MyVehiclesScreen() {
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
                 refreshControl={
-                    <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#6366f1" />
+                    <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#a3e635" />
                 }
                 ListEmptyComponent={
                     !isLoading ? (

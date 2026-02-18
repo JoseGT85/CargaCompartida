@@ -54,7 +54,7 @@ export function Button({
         >
             {isLoading ? (
                 <ActivityIndicator
-                    color={variant === 'outline' || variant === 'ghost' ? '#6366f1' : '#ffffff'}
+                    color={variant === 'outline' || variant === 'ghost' ? '#a3e635' : '#ffffff'}
                     size="small"
                 />
             ) : (

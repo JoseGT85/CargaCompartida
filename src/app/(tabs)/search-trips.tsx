@@ -3,83 +3,14 @@
  * Permite buscar viajes disponibles por origen/destino.
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { Search } from 'lucide-react-native';
 
 import { useTripStore } from '../../features/trips/stores/useTripStore';
 import { Input } from '../../shared/components/Input';
-import type { Trip } from '../../types/database.types';
-
-// ────────────────────────────────────────────────────────────────
-// Helpers
-// ────────────────────────────────────────────────────────────────
-
-function formatDate(dateStr: string): string {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('es-AR', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
-// ────────────────────────────────────────────────────────────────
-// TripResult Card
-// ────────────────────────────────────────────────────────────────
-
-function TripResultCard({ trip }: { trip: Trip }) {
-    return (
-        <TouchableOpacity className="bg-surface rounded-2xl p-4 mb-3 mx-4">
-            {/* Badge de retorno */}
-            {trip.direction === 'return' && (
-                <View className="flex-row items-center mb-2">
-                    <View className="bg-primary-600/30 px-2 py-0.5 rounded-full flex-row items-center">
-                        <Text className="text-primary-300 text-xs">🔄 Viaje de Retorno — Mayor prioridad</Text>
-                    </View>
-                </View>
-            )}
-
-            {/* Ruta */}
-            <View className="flex-row items-center mb-1">
-                <Text className="text-success mr-2">🟢</Text>
-                <Text className="text-white text-base font-sans-bold flex-1" numberOfLines={1}>
-                    {trip.origin_name}
-                </Text>
-            </View>
-            <View className="ml-3 border-l-2 border-gray-700 h-3 mb-1" />
-            <View className="flex-row items-center mb-3">
-                <Text className="text-accent mr-2">🔴</Text>
-                <Text className="text-white text-base font-sans-bold flex-1" numberOfLines={1}>
-                    {trip.dest_name}
-                </Text>
-            </View>
-
-            {/* Stats */}
-            <View className="flex-row justify-between border-t border-surface-dark pt-3">
-                <View>
-                    <Text className="text-gray-500 text-xs">Salida</Text>
-                    <Text className="text-gray-300 text-sm">{formatDate(trip.departure_at)}</Text>
-                </View>
-                <View className="items-center">
-                    <Text className="text-gray-500 text-xs">Espacio</Text>
-                    <Text className="text-white text-sm font-sans-bold">{trip.available_kg} kg</Text>
-                </View>
-                <View className="items-end">
-                    <Text className="text-gray-500 text-xs">Precio</Text>
-                    <Text className="text-primary-400 text-sm font-sans-bold">
-                        ${trip.price_per_kg}/kg
-                    </Text>
-                </View>
-            </View>
-
-            {/* CTA */}
-            <TouchableOpacity className="bg-primary-600 rounded-xl py-2.5 mt-3 items-center">
-                <Text className="text-white text-sm font-sans-bold">Ver Detalle y Reservar</Text>
-            </TouchableOpacity>
-        </TouchableOpacity>
-    );
-}
+import { TripCard } from '../../shared/components/TripCard';
+import { COLORS } from '../../config/constants';
 
 // ────────────────────────────────────────────────────────────────
 // Pantalla
@@ -89,6 +20,7 @@ export default function SearchTripsScreen() {
     const { searchResults, isSearching, searchTrips } = useTripStore();
     const [originSearch, setOriginSearch] = useState('');
     const [destSearch, setDestSearch] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Cargar viajes al montar
     useEffect(() => {
@@ -96,14 +28,32 @@ export default function SearchTripsScreen() {
     }, []);
 
     const handleSearch = useCallback(() => {
-        // Por ahora búsqueda simple, en Fase 3+ se conectará con geocoding
         searchTrips({});
-    }, []);
+    }, [searchTrips]);
+
+    const onRefresh = useCallback(async () => {
+        setIsRefreshing(true);
+        await searchTrips({});
+        setIsRefreshing(false);
+    }, [searchTrips]);
+
+    // Filtrar resultados client-side por texto de origen/destino
+    const filteredResults = useMemo(() => {
+        if (!originSearch.trim() && !destSearch.trim()) return searchResults;
+
+        return searchResults.filter((trip) => {
+            const matchesOrigin = !originSearch.trim() ||
+                trip.origin_name?.toLowerCase().includes(originSearch.toLowerCase().trim());
+            const matchesDest = !destSearch.trim() ||
+                trip.dest_name?.toLowerCase().includes(destSearch.toLowerCase().trim());
+            return matchesOrigin && matchesDest;
+        });
+    }, [searchResults, originSearch, destSearch]);
 
     return (
-        <View className="flex-1 bg-surface-dark">
+        <View className="flex-1 bg-background">
             {/* Barra de búsqueda */}
-            <View className="px-4 pt-4 pb-2 bg-surface">
+            <View className="px-4 pt-4 pb-2 bg-card border-b border-border">
                 <View className="flex-row gap-2">
                     <View className="flex-1">
                         <Input
@@ -123,39 +73,51 @@ export default function SearchTripsScreen() {
                     </View>
                 </View>
                 <TouchableOpacity
-                    className="bg-primary-600 rounded-xl py-3 mt-2 items-center"
+                    className="bg-primary rounded-xl py-3 mt-2 items-center flex-row justify-center"
                     onPress={handleSearch}
                 >
-                    <Text className="text-white text-base font-sans-bold">🔍 Buscar Viajes</Text>
+                    <Search size={18} color={COLORS.primaryForeground} />
+                    <Text className="text-primary-foreground text-base font-sans-bold ml-2">Buscar Viajes</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Resultados */}
             {isSearching ? (
                 <View className="flex-1 items-center justify-center">
-                    <ActivityIndicator size="large" color="#6366f1" />
-                    <Text className="text-gray-400 mt-3">Buscando viajes disponibles...</Text>
+                    <ActivityIndicator size="large" color={COLORS.primary} />
+                    <Text className="text-muted-foreground mt-3">Buscando viajes disponibles...</Text>
                 </View>
-            ) : searchResults.length === 0 ? (
+            ) : filteredResults.length === 0 ? (
                 <View className="flex-1 items-center justify-center px-8">
-                    <Text className="text-6xl mb-4">🔍</Text>
-                    <Text className="text-white text-xl font-sans-bold text-center">
+                    <Search size={48} color={COLORS.muted} />
+                    <Text className="text-foreground text-xl font-sans-bold text-center mt-4">
                         No hay viajes disponibles
                     </Text>
-                    <Text className="text-gray-400 text-center mt-2">
-                        Buscá por origen y destino, o intentá más tarde.
+                    <Text className="text-muted-foreground text-center mt-2">
+                        {originSearch || destSearch
+                            ? 'No se encontraron viajes con esos criterios. Probá con otros términos.'
+                            : 'Buscá por origen y destino, o intentá más tarde.'}
                     </Text>
                 </View>
             ) : (
                 <FlatList
-                    data={searchResults}
+                    data={filteredResults}
                     keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => <TripResultCard trip={item} />}
+                    renderItem={({ item }) => (
+                        <TripCard trip={item} showBookButton />
+                    )}
                     contentContainerStyle={{ paddingTop: 12, paddingBottom: 100 }}
                     showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={onRefresh}
+                            tintColor={COLORS.primary}
+                        />
+                    }
                     ListHeaderComponent={
-                        <Text className="text-gray-400 text-sm ml-4 mb-2">
-                            {searchResults.length} viaje{searchResults.length !== 1 ? 's' : ''} disponible{searchResults.length !== 1 ? 's' : ''}
+                        <Text className="text-muted-foreground text-sm ml-4 mb-2">
+                            {filteredResults.length} viaje{filteredResults.length !== 1 ? 's' : ''} disponible{filteredResults.length !== 1 ? 's' : ''}
                         </Text>
                     }
                 />

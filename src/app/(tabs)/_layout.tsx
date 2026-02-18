@@ -1,13 +1,14 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
 import { useAuthStore } from '../../features/auth/stores/useAuthStore';
+import { COLORS } from '../../config/constants';
+import { Home, Truck, Search, User } from 'lucide-react-native';
 
 // ────────────────────────────────────────────────────────────────
 // Layout del grupo (tabs) — Navegación principal con Tab Bar
 // Tabs diferenciados por rol:
-//   Chofer:  Inicio 🏠 | Mis Viajes 🚛 | Perfil 👤
-//   Cliente: Inicio 🏠 | Buscar 🔍    | Perfil 👤
+//   Chofer:  Inicio | Mis Viajes | Perfil
+//   Cliente: Inicio | Buscar     | Perfil
 // ────────────────────────────────────────────────────────────────
 
 export default function TabsLayout() {
@@ -17,18 +18,18 @@ export default function TabsLayout() {
     return (
         <Tabs
             screenOptions={{
-                headerStyle: { backgroundColor: '#16213e' },
-                headerTintColor: '#ffffff',
+                headerStyle: { backgroundColor: COLORS.card },
+                headerTintColor: COLORS.foreground,
                 headerTitleStyle: { fontWeight: '600' },
                 tabBarStyle: {
-                    backgroundColor: '#16213e',
-                    borderTopColor: '#1a1a2e',
+                    backgroundColor: COLORS.card,
+                    borderTopColor: COLORS.surfaceDark,
                     borderTopWidth: 1,
                     paddingBottom: 8,
                     paddingTop: 8,
                     height: 60,
                 },
-                tabBarActiveTintColor: '#6366f1',
+                tabBarActiveTintColor: COLORS.primary,
                 tabBarInactiveTintColor: '#6b7280',
             }}
         >
@@ -37,9 +38,9 @@ export default function TabsLayout() {
                 name="home"
                 options={{
                     title: 'Inicio',
-                    headerTitle: '🚛 CargaCompartida',
+                    headerTitle: 'CargaCompartida',
                     tabBarIcon: ({ color }) => (
-                        <Text style={{ fontSize: 20, color }}>🏠</Text>
+                        <Home size={22} color={color} />
                     ),
                 }}
             />
@@ -49,11 +50,10 @@ export default function TabsLayout() {
                 name="my-trips"
                 options={{
                     title: 'Mis Viajes',
-                    headerTitle: '🚛 Mis Viajes',
+                    headerTitle: 'Mis Viajes',
                     tabBarIcon: ({ color }) => (
-                        <Text style={{ fontSize: 20, color }}>🚛</Text>
+                        <Truck size={22} color={color} />
                     ),
-                    // Ocultar para clientes
                     href: isDriver ? '/(tabs)/my-trips' : null,
                 }}
             />
@@ -63,11 +63,10 @@ export default function TabsLayout() {
                 name="search-trips"
                 options={{
                     title: 'Buscar',
-                    headerTitle: '🔍 Buscar Viajes',
+                    headerTitle: 'Buscar Viajes',
                     tabBarIcon: ({ color }) => (
-                        <Text style={{ fontSize: 20, color }}>🔍</Text>
+                        <Search size={22} color={color} />
                     ),
-                    // Ocultar para choferes
                     href: !isDriver ? '/(tabs)/search-trips' : null,
                 }}
             />
@@ -77,8 +76,8 @@ export default function TabsLayout() {
                 name="create-trip"
                 options={{
                     title: 'Publicar Viaje',
-                    headerTitle: '📝 Publicar Viaje',
-                    href: null, // Siempre oculto del tab bar
+                    headerTitle: 'Publicar Viaje',
+                    href: null,
                 }}
             />
 
@@ -87,9 +86,9 @@ export default function TabsLayout() {
                 name="profile"
                 options={{
                     title: 'Perfil',
-                    headerTitle: '👤 Mi Perfil',
+                    headerTitle: 'Mi Perfil',
                     tabBarIcon: ({ color }) => (
-                        <Text style={{ fontSize: 20, color }}>👤</Text>
+                        <User size={22} color={color} />
                     ),
                 }}
             />
@@ -105,7 +104,7 @@ export default function TabsLayout() {
             <Tabs.Screen
                 name="my-vehicles"
                 options={{
-                    href: null, // Oculto del tab bar, accesible via navegación
+                    href: null,
                 }}
             />
         </Tabs>

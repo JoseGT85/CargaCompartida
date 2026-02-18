@@ -11,12 +11,13 @@ export default function AuthLayout() {
         <Stack
             screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: '#1a1a2e' },
+                contentStyle: { backgroundColor: '#080c17' },
                 animation: 'slide_from_right',
             }}
         >
             <Stack.Screen name="login" />
             <Stack.Screen name="register" />
+            <Stack.Screen name="register-client" />
         </Stack>
     );
 }

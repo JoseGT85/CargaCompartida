@@ -1,90 +1,172 @@
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { router } from 'expo-router';
+import { Plus, Truck, Search, MapPin, Star, ChevronRight, Route } from 'lucide-react-native';
 import { useAuthStore } from '../../features/auth/stores/useAuthStore';
-import { Button } from '../../shared/components';
+import { COLORS } from '../../config/constants';
 
 // ────────────────────────────────────────────────────────────────
-// Pantalla de Inicio — CargaCompartida
-// Placeholder para la Fase 1
+// Pantalla de Inicio — Dashboard funcional por rol
 // ────────────────────────────────────────────────────────────────
+
+function QuickActionCard({
+    icon,
+    title,
+    subtitle,
+    onPress,
+}: {
+    icon: React.ReactNode;
+    title: string;
+    subtitle: string;
+    onPress: () => void;
+}) {
+    return (
+        <TouchableOpacity
+            className="bg-card rounded-2xl p-4 flex-row items-center border border-border mb-3"
+            onPress={onPress}
+            activeOpacity={0.7}
+        >
+            <View className="w-12 h-12 rounded-xl bg-primary/10 items-center justify-center mr-4">
+                {icon}
+            </View>
+            <View className="flex-1">
+                <Text className="text-foreground text-base font-sans-bold">{title}</Text>
+                <Text className="text-muted-foreground text-sm mt-0.5">{subtitle}</Text>
+            </View>
+            <ChevronRight size={20} color={COLORS.muted} />
+        </TouchableOpacity>
+    );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+    return (
+        <View className="flex-1 bg-card rounded-2xl p-4 border border-border items-center">
+            <Text className="text-primary text-2xl font-sans-bold">{value}</Text>
+            <Text className="text-muted-foreground text-xs mt-1">{label}</Text>
+        </View>
+    );
+}
 
 export default function HomeScreen() {
-    const { profile, signOut, isLoading } = useAuthStore();
+    const { profile } = useAuthStore();
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const isDriver = profile?.role === 'driver';
+
+    const onRefresh = useCallback(async () => {
+        setIsRefreshing(true);
+        // Re-fetch profile data
+        await useAuthStore.getState().fetchProfile(profile?.id ?? '');
+        setIsRefreshing(false);
+    }, [profile?.id]);
 
     return (
-        <ScrollView className="flex-1 bg-surface-dark">
-            <View className="px-6 py-8">
-                {/* Bienvenida */}
-                <View className="bg-surface rounded-2xl p-6 mb-6">
-                    <Text className="text-2xl font-bold text-white mb-2">
-                        ¡Hola{profile?.full_name ? `, ${profile.full_name}` : ''}! 👋
-                    </Text>
-                    <Text className="text-gray-400 text-base">
-                        Bienvenido a CargaCompartida. Conectamos tu carga con vehículos que
-                        vuelven vacíos por las rutas de Mendoza.
-                    </Text>
-                </View>
+        <ScrollView
+            className="flex-1 bg-background"
+            contentContainerStyle={{ paddingBottom: 40 }}
+            refreshControl={
+                <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={onRefresh}
+                    tintColor={COLORS.primary}
+                />
+            }
+        >
+            {/* Welcome */}
+            <View className="px-6 pt-6 pb-4">
+                <Text className="text-foreground text-2xl font-sans-bold">
+                    Hola, {profile?.full_name?.split(' ')[0] || 'Usuario'}
+                </Text>
+                <Text className="text-muted-foreground text-base mt-1">
+                    {isDriver
+                        ? 'Publicá tu viaje y monetizá tu espacio'
+                        : 'Encontrá el mejor flete para tu carga'}
+                </Text>
+            </View>
 
-                {/* Info de perfil */}
-                {profile && (
-                    <View className="bg-surface rounded-2xl p-6 mb-6">
-                        <Text className="text-white text-lg font-semibold mb-4">
-                            📋 Tu Perfil
-                        </Text>
-                        <View className="space-y-2">
-                            <View className="flex-row justify-between py-2 border-b border-gray-700">
-                                <Text className="text-gray-400">Rol</Text>
-                                <Text className="text-white font-medium capitalize">
-                                    {profile.role === 'driver' ? 'Chofer' : profile.role === 'client' ? 'Cliente' : 'Admin'}
-                                </Text>
-                            </View>
-                            <View className="flex-row justify-between py-2 border-b border-gray-700">
-                                <Text className="text-gray-400">KYC</Text>
-                                <Text className={`font-medium ${profile.kyc_status === 'approved' ? 'text-success' :
-                                    profile.kyc_status === 'rejected' ? 'text-danger' :
-                                        'text-warning'
-                                    }`}>
-                                    {profile.kyc_status === 'pending' ? 'Pendiente' :
-                                        profile.kyc_status === 'submitted' ? 'En revisión' :
-                                            profile.kyc_status === 'approved' ? 'Aprobado' : 'Rechazado'}
-                                </Text>
-                            </View>
-                            <View className="flex-row justify-between py-2">
-                                <Text className="text-gray-400">Teléfono</Text>
-                                <Text className="text-white font-medium">{profile.phone}</Text>
-                            </View>
-                        </View>
-                    </View>
+            {/* Quick Actions */}
+            <View className="px-6 mb-6">
+                <Text className="text-muted-foreground text-xs font-sans-medium mb-3 tracking-wider">
+                    ACCIONES RÁPIDAS
+                </Text>
+                {isDriver ? (
+                    <>
+                        <QuickActionCard
+                            icon={<Plus size={24} color={COLORS.primary} />}
+                            title="Publicar Viaje"
+                            subtitle="Ofrecé tu espacio disponible"
+                            onPress={() => router.push('/(tabs)/create-trip' as any)}
+                        />
+                        <QuickActionCard
+                            icon={<Truck size={24} color={COLORS.primary} />}
+                            title="Mis Vehículos"
+                            subtitle="Administrá tu flota"
+                            onPress={() => router.push('/(tabs)/my-vehicles' as any)}
+                        />
+                    </>
+                ) : (
+                    <QuickActionCard
+                        icon={<Search size={24} color={COLORS.primary} />}
+                        title="Buscar Viajes"
+                        subtitle="Encontrá un viaje para tu carga"
+                        onPress={() => router.push('/(tabs)/search-trips' as any)}
+                    />
                 )}
+            </View>
 
-                {/* Rutas prioritarias */}
-                <View className="bg-surface rounded-2xl p-6 mb-6">
-                    <Text className="text-white text-lg font-semibold mb-4">
-                        🛣️ Rutas Principales
+            {/* Stats (drivers) */}
+            {isDriver && profile && (
+                <View className="px-6 mb-6">
+                    <Text className="text-muted-foreground text-xs font-sans-medium mb-3 tracking-wider">
+                        TU ACTIVIDAD
                     </Text>
+                    <View className="flex-row gap-3">
+                        <StatCard
+                            label="Rating"
+                            value={profile.rating_avg?.toFixed(1) ?? '0.0'}
+                        />
+                        <StatCard
+                            label="Reseñas"
+                            value={`${profile.rating_count ?? 0}`}
+                        />
+                        <StatCard
+                            label="KYC"
+                            value={
+                                profile.kyc_status === 'approved' ? 'OK' :
+                                profile.kyc_status === 'submitted' ? '...' :
+                                profile.kyc_status === 'rejected' ? 'No' : '—'
+                            }
+                        />
+                    </View>
+                </View>
+            )}
+
+            {/* Priority Routes */}
+            <View className="px-6 mb-6">
+                <Text className="text-muted-foreground text-xs font-sans-medium mb-3 tracking-wider">
+                    RUTAS PRINCIPALES
+                </Text>
+                <View className="bg-card rounded-2xl border border-border overflow-hidden">
                     {[
                         { route: 'Mendoza ↔ Buenos Aires', road: 'Ruta 7' },
                         { route: 'Mendoza ↔ San Rafael', road: 'Ruta 40/143' },
                         { route: 'Mendoza ↔ San Juan', road: 'Ruta 40 Norte' },
                         { route: 'Mendoza ↔ Chile', road: 'Paso Los Libertadores' },
-                    ].map((item) => (
-                        <View key={item.road} className="flex-row items-center py-2.5 border-b border-gray-700/50">
-                            <Text className="text-primary-400 mr-3">📍</Text>
-                            <View className="flex-1">
-                                <Text className="text-white text-sm font-medium">{item.route}</Text>
-                                <Text className="text-gray-500 text-xs">{item.road}</Text>
+                    ].map((item, index) => (
+                        <View
+                            key={item.road}
+                            className={`flex-row items-center px-4 py-3 ${
+                                index < 3 ? 'border-b border-border' : ''
+                            }`}
+                        >
+                            <MapPin size={16} color={COLORS.primary} />
+                            <View className="flex-1 ml-3">
+                                <Text className="text-foreground text-sm font-sans-medium">{item.route}</Text>
+                                <Text className="text-muted-foreground text-xs">{item.road}</Text>
                             </View>
                         </View>
                     ))}
                 </View>
-
-                {/* Botón de cerrar sesión */}
-                <Button
-                    title="Cerrar Sesión"
-                    variant="outline"
-                    onPress={signOut}
-                    isLoading={isLoading}
-                />
             </View>
         </ScrollView>
     );

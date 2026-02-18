@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '../features/auth/stores/useAuthStore';
+import { COLORS } from '../config/constants';
 import '../../global.css';
 
 // ────────────────────────────────────────────────────────────────
@@ -31,11 +33,12 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
         }
     }, [session, isInitialized, segments]);
 
-    // Pantalla de carga mientras se verifica la sesión
-    if (!isInitialized || isLoading) {
+    // Pantalla de carga SOLO durante la inicialización de sesión.
+    // No bloquear durante signIn/signUp — esas pantallas manejan su propio isLoading.
+    if (!isInitialized) {
         return (
             <View className="flex-1 items-center justify-center bg-surface-dark">
-                <ActivityIndicator size="large" color="#6366f1" />
+                <ActivityIndicator size="large" color={COLORS.primary} />
             </View>
         );
     }
@@ -56,8 +59,11 @@ export default function RootLayout() {
     }, []);
 
     return (
-        <AuthGuard>
-            <Slot />
-        </AuthGuard>
+        <>
+            <StatusBar style="light" />
+            <AuthGuard>
+                <Slot />
+            </AuthGuard>
+        </>
     );
 }
