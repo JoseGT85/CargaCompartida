@@ -1,8 +1,8 @@
-import React from 'react';
 import { Tabs } from 'expo-router';
-import { useAuthStore } from '../../features/auth/stores/useAuthStore';
+import { Home, Search, Truck, User } from 'lucide-react-native';
+import React from 'react';
 import { COLORS } from '../../config/constants';
-import { Home, Truck, Search, User } from 'lucide-react-native';
+import { useAuthStore } from '../../features/auth/stores/useAuthStore';
 
 // ────────────────────────────────────────────────────────────────
 // Layout del grupo (tabs) — Navegación principal con Tab Bar
@@ -81,6 +81,16 @@ export default function TabsLayout() {
                 }}
             />
 
+            {/* ─── CREAR PEDIDO (oculto del tab bar, accesible por push) */}
+            <Tabs.Screen
+                name="create-shipment"
+                options={{
+                    title: 'Crear Pedido',
+                    headerTitle: 'Crear Pedido de Envío',
+                    href: null,
+                }}
+            />
+
             {/* ─── PERFIL (ambos roles) ─────────────── */}
             <Tabs.Screen
                 name="profile"
@@ -110,4 +120,3 @@ export default function TabsLayout() {
         </Tabs>
     );
 }
-

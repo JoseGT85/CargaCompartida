@@ -17,6 +17,7 @@ export type TripStatus = 'draft' | 'published' | 'in_progress' | 'completed' | '
 export type BookingStatus = 'requested' | 'accepted' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled' | 'disputed';
 export type PaymentStatus = 'pending' | 'escrow' | 'released' | 'refunded' | 'failed';
 export type VehicleType = 'sedan' | 'pickup' | 'van' | 'suv' | 'utilitario';
+export type ShipmentStatus = 'open' | 'assigned' | 'in_transit' | 'completed' | 'cancelled';
 
 // ────────────────────────────────────────────────────────────────
 // Interfaces de tablas
@@ -30,6 +31,14 @@ export interface Profile {
     phone: string;
     cuit_cuil: string | null;
     avatar_url: string | null;
+    /** URL del frente del DNI (solo choferes) */
+    dni_front_url: string | null;
+    /** URL del dorso del DNI (solo choferes) */
+    dni_back_url: string | null;
+    /** URL de la licencia de conducir (solo choferes) */
+    license_url: string | null;
+    /** URL del seguro del vehículo (solo choferes) */
+    vehicle_insurance_url: string | null;
     kyc_status: KycStatus;
     kyc_submitted_at: string | null;
     rating_avg: number;
@@ -144,6 +153,25 @@ export interface TrackingPoint {
     created_at: string;
 }
 
+/** Pedido de envío creado por un cliente */
+export interface ShipmentRequest {
+    id: string;
+    client_id: string;
+    description: string;
+    weight_kg: number;
+    origin_name: string;
+    origin_point: string | null;
+    dest_name: string;
+    dest_point: string | null;
+    budget: number | null;
+    notes: string | null;
+    needed_by: string | null;
+    status: ShipmentStatus;
+    assigned_driver_id: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
 // ────────────────────────────────────────────────────────────────
 // Tipo Database para Supabase Client
 // ────────────────────────────────────────────────────────────────
@@ -198,6 +226,15 @@ export interface Database {
                 };
                 Update: Partial<Omit<TrackingPoint, 'id' | 'created_at'>>;
             };
+            shipment_requests: {
+                Row: ShipmentRequest;
+                Insert: Omit<ShipmentRequest, 'id' | 'created_at' | 'updated_at'> & {
+                    id?: string;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: Partial<Omit<ShipmentRequest, 'id' | 'created_at'>>;
+            };
         };
         Enums: {
             user_role: UserRole;
@@ -207,6 +244,7 @@ export interface Database {
             booking_status: BookingStatus;
             payment_status: PaymentStatus;
             vehicle_type: VehicleType;
+            shipment_status: ShipmentStatus;
         };
     };
 }

@@ -1,12 +1,18 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
-import { Plus, Truck, Search, MapPin, Star, ChevronRight, Route } from 'lucide-react-native';
-import { useAuthStore } from '../../features/auth/stores/useAuthStore';
+import { ChevronRight, MapPin, Package, Plus, Search, Truck } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { COLORS } from '../../config/constants';
+import { useAuthStore } from '../../features/auth/stores/useAuthStore';
+import { useShipmentStore } from '../../features/shipments/stores/useShipmentStore';
+import { useTripStore } from '../../features/trips/stores/useTripStore';
+import { ShipmentCard } from '../../shared/components/ShipmentCard';
+import { TripCard } from '../../shared/components/TripCard';
 
 // ────────────────────────────────────────────────────────────────
-// Pantalla de Inicio — Dashboard funcional por rol
+// Pantalla de Inicio — Feed bidireccional por rol
+// Choferes ven pedidos abiertos de clientes
+// Clientes ven viajes disponibles de choferes
 // ────────────────────────────────────────────────────────────────
 
 function QuickActionCard({
@@ -49,16 +55,53 @@ function StatCard({ label, value }: { label: string; value: string }) {
 
 export default function HomeScreen() {
     const { profile } = useAuthStore();
+    const { searchResults, searchTrips } = useTripStore();
+    const { openShipments, fetchOpenShipments, offerForShipment } = useShipmentStore();
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const isDriver = profile?.role === 'driver';
 
+    // Cargar datos al montar
+    useEffect(() => {
+        if (isDriver) {
+            fetchOpenShipments();
+        } else {
+            searchTrips({});
+        }
+    }, [isDriver]);
+
     const onRefresh = useCallback(async () => {
         setIsRefreshing(true);
-        // Re-fetch profile data
         await useAuthStore.getState().fetchProfile(profile?.id ?? '');
+        if (isDriver) {
+            await fetchOpenShipments();
+        } else {
+            await searchTrips({});
+        }
         setIsRefreshing(false);
-    }, [profile?.id]);
+    }, [profile?.id, isDriver]);
+
+    const handleOfferForShipment = (shipmentId: string) => {
+        if (!profile?.id) return;
+        Alert.alert(
+            'Ofrecer Viaje',
+            '¿Querés ofrecer tu servicio para este pedido?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Sí, Ofrecer',
+                    onPress: async () => {
+                        try {
+                            await offerForShipment(shipmentId, profile.id);
+                            Alert.alert('Oferta enviada', 'El cliente será notificado.');
+                        } catch {
+                            Alert.alert('Error', 'No se pudo enviar la oferta.');
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     return (
         <ScrollView
@@ -75,11 +118,11 @@ export default function HomeScreen() {
             {/* Welcome */}
             <View className="px-6 pt-6 pb-4">
                 <Text className="text-foreground text-2xl font-sans-bold">
-                    Hola, {profile?.full_name?.split(' ')[0] || 'Usuario'}
+                    {"Hola, "}{profile?.full_name?.split(' ')[0] || 'Usuario'}
                 </Text>
                 <Text className="text-muted-foreground text-base mt-1">
                     {isDriver
-                        ? 'Publicá tu viaje y monetizá tu espacio'
+                        ? 'Revisá los pedidos disponibles y ofrecé tu servicio'
                         : 'Encontrá el mejor flete para tu carga'}
                 </Text>
             </View>
@@ -87,7 +130,7 @@ export default function HomeScreen() {
             {/* Quick Actions */}
             <View className="px-6 mb-6">
                 <Text className="text-muted-foreground text-xs font-sans-medium mb-3 tracking-wider">
-                    ACCIONES RÁPIDAS
+                    {"ACCIONES RÁPIDAS"}
                 </Text>
                 {isDriver ? (
                     <>
@@ -105,12 +148,20 @@ export default function HomeScreen() {
                         />
                     </>
                 ) : (
-                    <QuickActionCard
-                        icon={<Search size={24} color={COLORS.primary} />}
-                        title="Buscar Viajes"
-                        subtitle="Encontrá un viaje para tu carga"
-                        onPress={() => router.push('/(tabs)/search-trips' as any)}
-                    />
+                    <>
+                        <QuickActionCard
+                            icon={<Search size={24} color={COLORS.primary} />}
+                            title="Buscar Viajes"
+                            subtitle="Encontrá un viaje para tu carga"
+                            onPress={() => router.push('/(tabs)/search-trips' as any)}
+                        />
+                        <QuickActionCard
+                            icon={<Plus size={24} color={COLORS.primary} />}
+                            title="Crear Pedido"
+                            subtitle="Publicá tu necesidad de envío"
+                            onPress={() => router.push('/(tabs)/create-shipment' as any)}
+                        />
+                    </>
                 )}
             </View>
 
@@ -118,7 +169,7 @@ export default function HomeScreen() {
             {isDriver && profile && (
                 <View className="px-6 mb-6">
                     <Text className="text-muted-foreground text-xs font-sans-medium mb-3 tracking-wider">
-                        TU ACTIVIDAD
+                        {"TU ACTIVIDAD"}
                     </Text>
                     <View className="flex-row gap-3">
                         <StatCard
@@ -133,18 +184,66 @@ export default function HomeScreen() {
                             label="KYC"
                             value={
                                 profile.kyc_status === 'approved' ? 'OK' :
-                                profile.kyc_status === 'submitted' ? '...' :
-                                profile.kyc_status === 'rejected' ? 'No' : '—'
+                                    profile.kyc_status === 'submitted' ? '...' :
+                                        profile.kyc_status === 'rejected' ? 'No' : '—'
                             }
                         />
                     </View>
                 </View>
             )}
 
+            {/* Feed: Pedidos para Choferes / Viajes para Clientes */}
+            <View className="mb-6">
+                <Text className="px-6 text-muted-foreground text-xs font-sans-medium mb-3 tracking-wider">
+                    {isDriver ? 'PEDIDOS DISPONIBLES' : 'VIAJES DISPONIBLES'}
+                </Text>
+
+                {isDriver ? (
+                    // Feed de pedidos para choferes
+                    openShipments.length === 0 ? (
+                        <View className="mx-6 bg-card rounded-2xl border border-border p-6 items-center">
+                            <Package size={32} color={COLORS.muted} />
+                            <Text className="text-foreground text-base font-sans-bold mt-3">
+                                {"No hay pedidos disponibles"}
+                            </Text>
+                            <Text className="text-muted-foreground text-sm text-center mt-1">
+                                {"Los pedidos de clientes aparecerán acá cuando estén disponibles."}
+                            </Text>
+                        </View>
+                    ) : (
+                        openShipments.map((shipment) => (
+                            <ShipmentCard
+                                key={shipment.id}
+                                shipment={shipment}
+                                showOfferButton
+                                onOffer={() => handleOfferForShipment(shipment.id)}
+                            />
+                        ))
+                    )
+                ) : (
+                    // Feed de viajes para clientes
+                    searchResults.length === 0 ? (
+                        <View className="mx-6 bg-card rounded-2xl border border-border p-6 items-center">
+                            <Truck size={32} color={COLORS.muted} />
+                            <Text className="text-foreground text-base font-sans-bold mt-3">
+                                {"No hay viajes disponibles"}
+                            </Text>
+                            <Text className="text-muted-foreground text-sm text-center mt-1">
+                                {"Los viajes de choferes aparecerán acá. También podés crear un pedido."}
+                            </Text>
+                        </View>
+                    ) : (
+                        searchResults.slice(0, 5).map((trip) => (
+                            <TripCard key={trip.id} trip={trip} showBookButton />
+                        ))
+                    )
+                )}
+            </View>
+
             {/* Priority Routes */}
             <View className="px-6 mb-6">
                 <Text className="text-muted-foreground text-xs font-sans-medium mb-3 tracking-wider">
-                    RUTAS PRINCIPALES
+                    {"RUTAS PRINCIPALES"}
                 </Text>
                 <View className="bg-card rounded-2xl border border-border overflow-hidden">
                     {[
@@ -155,9 +254,8 @@ export default function HomeScreen() {
                     ].map((item, index) => (
                         <View
                             key={item.road}
-                            className={`flex-row items-center px-4 py-3 ${
-                                index < 3 ? 'border-b border-border' : ''
-                            }`}
+                            className={`flex-row items-center px-4 py-3 ${index < 3 ? 'border-b border-border' : ''
+                                }`}
                         >
                             <MapPin size={16} color={COLORS.primary} />
                             <View className="flex-1 ml-3">

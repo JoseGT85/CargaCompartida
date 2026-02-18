@@ -1,26 +1,25 @@
+import { router } from 'expo-router';
+import { Eye, EyeOff, Lock, Mail, Truck } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
-    View,
-    Text,
-    ScrollView,
+    Alert,
     KeyboardAvoidingView,
     Platform,
-    Alert,
-    Image,
+    ScrollView,
+    Text,
     TouchableOpacity,
+    View,
 } from 'react-native';
-import { Link, router } from 'expo-router';
-import { Input, Button, Card } from '../../shared/components';
 import { useAuthStore } from '../../features/auth/stores/useAuthStore';
-import { loginSchema, type LoginFormData } from '../../features/auth/types/auth.schema';
-import { Truck, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { loginSchema } from '../../features/auth/types/auth.schema';
+import { Button, Input } from '../../shared/components';
 
 // ────────────────────────────────────────────────────────────────
-// Pantalla de Login — Migración visual desde Lovable
+// Pantalla de Login — Con Google OAuth
 // ────────────────────────────────────────────────────────────────
 
 export default function LoginScreen() {
-    const { signIn, isLoading, error, clearError } = useAuthStore();
+    const { signIn, signInWithGoogle, isLoading, error, clearError } = useAuthStore();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -47,6 +46,14 @@ export default function LoginScreen() {
         }
     };
 
+    const handleGoogleLogin = async () => {
+        try {
+            await signInWithGoogle();
+        } catch {
+            Alert.alert('Error', 'No se pudo iniciar sesión con Google. Intentá de nuevo.');
+        }
+    };
+
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -65,11 +72,31 @@ export default function LoginScreen() {
                     </View>
 
                     <Text className="text-2xl font-sans-bold text-foreground tracking-tight">
-                        CargaCompartida
+                        {"CargaCompartida"}
                     </Text>
                     <Text className="text-muted-foreground mt-1 mb-8 text-center text-base">
-                        Tu carga, tu precio.
+                        {"Tu carga, tu precio."}
                     </Text>
+
+                    {/* Google OAuth Button */}
+                    <TouchableOpacity
+                        className="w-full h-14 rounded-2xl bg-white flex-row items-center justify-center mb-4"
+                        onPress={handleGoogleLogin}
+                        activeOpacity={0.8}
+                        disabled={isLoading}
+                    >
+                        <Text className="text-lg mr-3">{"🔵"}</Text>
+                        <Text className="text-gray-800 font-sans-bold text-base">
+                            {"Continuar con Google"}
+                        </Text>
+                    </TouchableOpacity>
+
+                    {/* Divider */}
+                    <View className="w-full flex-row items-center my-4">
+                        <View className="flex-1 h-px bg-border" />
+                        <Text className="text-muted-foreground text-xs mx-4">{"o con email"}</Text>
+                        <View className="flex-1 h-px bg-border" />
+                    </View>
 
                     {/* Form Container */}
                     <View className="w-full space-y-4 gap-4">
@@ -89,7 +116,7 @@ export default function LoginScreen() {
                                 }}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
-                                className="pl-12" // Padding left para el icono
+                                className="pl-12"
                                 error={fieldErrors.email}
                             />
                         </View>
@@ -107,7 +134,7 @@ export default function LoginScreen() {
                                     if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: '' });
                                 }}
                                 secureTextEntry={!showPassword}
-                                className="pl-12 pr-12" // Padding left icono, right ojo
+                                className="pl-12 pr-12"
                                 error={fieldErrors.password}
                             />
                             <TouchableOpacity
@@ -122,7 +149,7 @@ export default function LoginScreen() {
                             </TouchableOpacity>
                         </View>
 
-                        {error && (
+                        {!!error && (
                             <Text className="text-destructive text-sm text-center">{error}</Text>
                         )}
 
@@ -154,7 +181,7 @@ export default function LoginScreen() {
                     </View>
 
                     <Text className="text-xs text-muted-foreground mt-6 text-center">
-                        Mendoza, Argentina
+                        {"Mendoza, Argentina"}
                     </Text>
                 </View>
             </ScrollView>

@@ -1,5 +1,5 @@
-import React from 'react';
 import { Stack } from 'expo-router';
+import React from 'react';
 
 // ────────────────────────────────────────────────────────────────
 // Layout del grupo (auth) — Pantallas de autenticación
@@ -18,6 +18,7 @@ export default function AuthLayout() {
             <Stack.Screen name="login" />
             <Stack.Screen name="register" />
             <Stack.Screen name="register-client" />
+            <Stack.Screen name="complete-profile" />
         </Stack>
     );
 }
