@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
-    View,
     Text,
     TextInput,
+    View,
     type TextInputProps,
 } from 'react-native';
 
@@ -38,7 +38,7 @@ export function Input({
 
     return (
         <View className="mb-4">
-            {label && (
+            {!!label && (
                 <Text className="text-gray-300 text-sm font-medium mb-1.5">
                     {label}
                 </Text>

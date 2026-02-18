@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import React, { useState } from 'react';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 
 interface DateTimePickerInputProps {
     label: string;
@@ -87,7 +87,7 @@ export const DateTimePickerInput: React.FC<DateTimePickerInputProps> = ({
                 </View>
             )}
 
-            {error && (
+            {!!error && (
                 <Text className="text-red-500 text-sm mt-1 ml-1 font-sans">
                     {error}
                 </Text>
