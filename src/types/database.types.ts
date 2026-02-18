@@ -18,6 +18,7 @@ export type BookingStatus = 'requested' | 'accepted' | 'picked_up' | 'in_transit
 export type PaymentStatus = 'pending' | 'escrow' | 'released' | 'refunded' | 'failed';
 export type VehicleType = 'sedan' | 'pickup' | 'van' | 'suv' | 'utilitario';
 export type ShipmentStatus = 'open' | 'assigned' | 'in_transit' | 'completed' | 'cancelled';
+export type DriverTier = 'bronze' | 'silver' | 'gold';
 
 // ────────────────────────────────────────────────────────────────
 // Interfaces de tablas
@@ -43,9 +44,24 @@ export interface Profile {
     kyc_submitted_at: string | null;
     rating_avg: number;
     rating_count: number;
+    /** Viajes completados (se incrementa por trigger) */
+    trips_completed: number;
+    /** Nivel del chofer basado en reputación */
+    driver_tier: DriverTier;
     is_active: boolean;
     created_at: string;
     updated_at: string;
+}
+
+/** Review de un viaje */
+export interface Review {
+    id: string;
+    trip_id: string;
+    reviewer_id: string;
+    reviewed_id: string;
+    rating: number;
+    comment: string | null;
+    created_at: string;
 }
 
 /**
@@ -235,6 +251,14 @@ export interface Database {
                 };
                 Update: Partial<Omit<ShipmentRequest, 'id' | 'created_at'>>;
             };
+            reviews: {
+                Row: Review;
+                Insert: Omit<Review, 'id' | 'created_at'> & {
+                    id?: string;
+                    created_at?: string;
+                };
+                Update: Partial<Omit<Review, 'id' | 'created_at'>>;
+            };
         };
         Enums: {
             user_role: UserRole;
@@ -245,6 +269,7 @@ export interface Database {
             payment_status: PaymentStatus;
             vehicle_type: VehicleType;
             shipment_status: ShipmentStatus;
+            driver_tier: DriverTier;
         };
     };
 }
